@@ -5,6 +5,7 @@ import { toNodeHandler } from "better-auth/node";
 import { connectDB } from "./config/db.js";
 import { createAuth } from "./config/auth.js";
 import { authMiddleware } from "./middlewares/auth.middleware.js";
+import eventRoutes from "./routes/event.routes.js";
 
 dotenv.config();
 
@@ -47,6 +48,8 @@ const startServer = async () => {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
 
+    app.use("/api/events", eventRoutes);
+
     app.get("/api/protected/profile", authMiddleware, (_req, res) => {
       const user = res.locals.auth;
 
@@ -61,11 +64,10 @@ const startServer = async () => {
     });
 
     app.listen(PORT, () => {
-      console.log("MongoDB connected successfully!");
       console.log(`Kindora server running on port ${PORT}`);
       console.log(`API: http://localhost:${PORT}`);
       console.log(`Auth: http://localhost:${PORT}/api/auth`);
-      console.log(`Protected API: http://localhost:${PORT}/api/protected/profile`);
+      console.log(`Events: http://localhost:${PORT}/api/events`);
     });
   } catch (error) {
     console.error("Server startup failed:", error);
