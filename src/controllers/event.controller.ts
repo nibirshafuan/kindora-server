@@ -123,18 +123,42 @@ export const createEvent: RequestHandler = async (req, res) => {
 };
 
 // Get Upcoming Events
-export const getUpcomingEvents: RequestHandler = async (_req, res) => {
+export const getUpcomingEvents: RequestHandler = async (req, res) => {
   try {
-    const rawLimit = Number(_req.query.limit ?? 20);
+    const rawLimit = Number(req.query.limit ?? 20);
     const limit = Number.isFinite(rawLimit)
       ? Math.min(Math.max(Math.floor(rawLimit), 1), 100)
       : 20;
 
+    const search =
+      typeof req.query.search === "string"
+        ? req.query.search.trim()
+        : "";
+
+    const category =
+      typeof req.query.category === "string"
+        ? req.query.category.trim()
+        : "";
+
+    const filter = {
+      eventDate: { $gt: new Date() },
+      ...(search
+        ? {
+            $or: [
+              { title: { $regex: search, $options: "i" } },
+              { description: { $regex: search, $options: "i" } },
+              { location: { $regex: search, $options: "i" } },
+            ],
+          }
+        : {}),
+      ...(category && category.toLowerCase() !== "all"
+        ? { eventType: category }
+        : {}),
+    };
+
     const events = await getDB()
       .collection<EventDocument>("events")
-      .find({
-        eventDate: { $gt: new Date() },
-      })
+      .find(filter)
       .sort({ eventDate: 1 })
       .limit(limit)
       .toArray();
@@ -543,3 +567,4 @@ export const getMyEvents: RequestHandler = async (_req, res) => {
     });
   }
 };
+
