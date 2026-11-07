@@ -371,3 +371,175 @@ export const deleteEvent: RequestHandler = async (req, res) => {
   }
 };
 
+
+// Event Participation Document
+interface ParticipationDocument {
+  eventId: ObjectId;
+  userEmail: string;
+  joinedAt: Date;
+}
+
+// Join Event
+export const joinEvent: RequestHandler = async (req, res) => {
+  try {
+    const userEmail = getUserEmail(res);
+    const idParam = req.params.id;
+    const id = Array.isArray(idParam) ? idParam[0] : idParam;
+
+    if (!userEmail) {
+      res.status(401).json({
+        success: false,
+        message: "Authenticated user email not found.",
+      });
+      return;
+    }
+
+    if (typeof id !== "string" || !ObjectId.isValid(id)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid event ID.",
+      });
+      return;
+    }
+
+    const db = getDB();
+    const eventId = new ObjectId(id);
+
+    const event = await db.collection<EventDocument>("events").findOne({
+      _id: eventId,
+      eventDate: { $gt: new Date() },
+    });
+
+    if (!event) {
+      res.status(404).json({
+        success: false,
+        message: "Upcoming event not found.",
+      });
+      return;
+    }
+
+    const participationCollection =
+      db.collection<ParticipationDocument>("eventParticipants");
+
+    await participationCollection.createIndex(
+      { eventId: 1, userEmail: 1 },
+      { unique: true }
+    );
+
+    try {
+      await participationCollection.insertOne({
+        eventId,
+        userEmail,
+        joinedAt: new Date(),
+      });
+    } catch (error) {
+      if ((error as { code?: number }).code === 11000) {
+        res.status(409).json({
+          success: false,
+          message: "You have already joined this event.",
+        });
+        return;
+      }
+
+      throw error;
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "You have successfully joined the event!",
+    });
+  } catch (error) {
+    console.error("Join event error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to join event.",
+    });
+  }
+};
+
+// Get Joined Events
+export const getJoinedEvents: RequestHandler = async (_req, res) => {
+  try {
+    const userEmail = getUserEmail(res);
+
+    if (!userEmail) {
+      res.status(401).json({
+        success: false,
+        message: "Authenticated user email not found.",
+      });
+      return;
+    }
+
+    const db = getDB();
+
+    const participations = await db
+      .collection<ParticipationDocument>("eventParticipants")
+      .find({ userEmail })
+      .toArray();
+
+    if (participations.length === 0) {
+      res.status(200).json({
+        success: true,
+        count: 0,
+        events: [],
+      });
+      return;
+    }
+
+    const eventIds = participations.map((item) => item.eventId);
+
+    const events = await db
+      .collection<EventDocument>("events")
+      .find({ _id: { $in: eventIds } })
+      .sort({ eventDate: 1 })
+      .toArray();
+
+    res.status(200).json({
+      success: true,
+      count: events.length,
+      events,
+    });
+  } catch (error) {
+    console.error("Get joined events error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch joined events.",
+    });
+  }
+};
+
+// Get My Created Events
+export const getMyEvents: RequestHandler = async (_req, res) => {
+  try {
+    const userEmail = getUserEmail(res);
+
+    if (!userEmail) {
+      res.status(401).json({
+        success: false,
+        message: "Authenticated user email not found.",
+      });
+      return;
+    }
+
+    const events = await getDB()
+      .collection<EventDocument>("events")
+      .find({ creatorEmail: userEmail })
+      .sort({ eventDate: 1 })
+      .toArray();
+
+    res.status(200).json({
+      success: true,
+      count: events.length,
+      events,
+    });
+  } catch (error) {
+    console.error("Get my events error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch your events.",
+    });
+  }
+};
