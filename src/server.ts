@@ -11,7 +11,7 @@ dotenv.config();
 
 const app = express();
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
 app.use(
@@ -63,11 +63,9 @@ const startServer = async () => {
       });
     });
 
-    app.listen(PORT, () => {
+    app.listen(PORT, "0.0.0.0", () => {
       console.log(`Kindora server running on port ${PORT}`);
-      console.log(`API: http://localhost:${PORT}`);
-      console.log(`Auth: http://localhost:${PORT}/api/auth`);
-      console.log(`Events: http://localhost:${PORT}/api/events`);
+      console.log("Server listening on 0.0.0.0");
     });
   } catch (error) {
     console.error("Server startup failed:", error);
