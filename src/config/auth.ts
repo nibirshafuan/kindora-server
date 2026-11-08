@@ -25,6 +25,14 @@ export const createAuth = () => {
       },
     },
 
+    advanced: {
+      useSecureCookies: true,
+      defaultCookieAttributes: {
+        sameSite: "none",
+        secure: true,
+      },
+    },
+
     plugins: [jwt()],
 
     trustedOrigins: [
