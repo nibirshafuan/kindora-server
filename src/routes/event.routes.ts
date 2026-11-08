@@ -8,6 +8,7 @@ import {
   updateEvent,
   deleteEvent,
   joinEvent,
+  leaveEvent,
   getJoinedEvents,
   getMyEvents,
 } from "../controllers/event.controller.js";
@@ -27,7 +28,9 @@ router.get("/:id", getEventById);
 // Event management
 router.post("/", authMiddleware, createEvent);
 router.post("/:id/join", authMiddleware, joinEvent);
+router.delete("/:id/join", authMiddleware, leaveEvent);
 router.patch("/:id", authMiddleware, updateEvent);
 router.delete("/:id", authMiddleware, deleteEvent);
 
 export default router;
+

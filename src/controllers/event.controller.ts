@@ -568,3 +568,55 @@ export const getMyEvents: RequestHandler = async (_req, res) => {
   }
 };
 
+
+// Leave Event
+export const leaveEvent: RequestHandler = async (req, res) => {
+  try {
+    const userEmail = getUserEmail(res);
+    const idParam = req.params.id;
+    const id = Array.isArray(idParam) ? idParam[0] : idParam;
+
+    if (!userEmail) {
+      res.status(401).json({
+        success: false,
+        message: "Authenticated user email not found.",
+      });
+      return;
+    }
+
+    if (typeof id !== "string" || !ObjectId.isValid(id)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid event ID.",
+      });
+      return;
+    }
+
+    const result = await getDB()
+      .collection<ParticipationDocument>("eventParticipants")
+      .deleteOne({
+        eventId: new ObjectId(id),
+        userEmail,
+      });
+
+    if (result.deletedCount === 0) {
+      res.status(404).json({
+        success: false,
+        message: "You have not joined this event.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "You have successfully left the event.",
+    });
+  } catch (error) {
+    console.error("Leave event error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to leave event.",
+    });
+  }
+};
