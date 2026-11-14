@@ -1,102 +1,241 @@
 ﻿# Kindora – Backend API
 
-The backend service for Kindora, a social development events platform. It provides authentication, event management, event participation, and protected API endpoints.
+The backend API for **Kindora**, a community-driven platform that connects people with meaningful volunteer opportunities and community development events.
 
-## Technologies
+It provides authentication, event management, event participation, and secure protected API endpoints.
+
+**Live Application:** https://kindora-client-five.vercel.app
+
+## My Role
+
+**Full-Stack Developer**
+
+Designed and developed the backend API, authentication integration, database operations, and event management functionality.
+
+## Technology Stack
 
 - Node.js
-- Express.js
+- Express.js 5
 - TypeScript
 - MongoDB
 - Better Auth
 - JWT
+- JOSE
 - CORS
+- dotenv
 
-## Features
+## Key Features
 
-1. Email and password authentication.
-2. Google OAuth authentication.
-3. JWT-based API authentication.
-4. Create and manage community events.
-5. Retrieve upcoming events.
-6. Search and filter events.
-7. Join events with duplicate participation prevention.
-8. Retrieve user-created events.
-9. Retrieve joined events.
-10. Update and delete events with ownership verification.
+- Email and password authentication
+- Google OAuth authentication
+- JWT-based authentication using JWKS verification
+- Protected API routes with Bearer Token authentication
+- Create and manage community events
+- Retrieve upcoming events and event details
+- Search events by title, description, and location
+- Filter events by category
+- Join and leave community events
+- Prevent duplicate event participation
+- Retrieve user-created events
+- Retrieve joined events
+- Verify event ownership before updating or deleting
+- MongoDB integration for persistent data storage
+- Health check endpoint
 
-## API Endpoints
+## API Documentation
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | / | API welcome |
-| GET | /api/health | Health check |
-| GET | /api/events | Upcoming events |
-| GET | /api/events/:id | Event details |
-| POST | /api/events | Create event |
-| PATCH | /api/events/:id | Update event |
-| DELETE | /api/events/:id | Delete event |
-| POST | /api/events/:id/join | Join event |
-| GET | /api/events/joined | Joined events |
-| GET | /api/events/mine | My events |
-| GET | /api/protected/profile | Protected profile |
+Base URL (local):
 
-Authentication endpoints are handled by Better Auth under `/api/auth`.
+```text
+http://localhost:5000
+```
+
+### General Endpoints
+
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| GET | `/` | API welcome message | Public |
+| GET | `/api/health` | Server health check | Public |
+
+### Authentication
+
+Better Auth handles authentication under:
+
+```text
+/api/auth/*
+```
+
+Supported authentication methods:
+
+- Email and password
+- Google OAuth
+
+### Event Endpoints
+
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| GET | `/api/events` | Get upcoming events | Public |
+| GET | `/api/events/:id` | Get event details | Public |
+| POST | `/api/events` | Create an event | Protected |
+| PATCH | `/api/events/:id` | Update an event | Protected |
+| DELETE | `/api/events/:id` | Delete an event | Protected |
+| POST | `/api/events/:id/join` | Join an event | Protected |
+| DELETE | `/api/events/:id/join` | Leave an event | Protected |
+| GET | `/api/events/joined` | Get joined events | Protected |
+| GET | `/api/events/mine` | Get events created by the user | Protected |
+
+### Event Search and Filtering
+
+The upcoming events endpoint supports query parameters:
+
+| Parameter | Description |
+|---|---|
+| `search` | Search by title, description, or location |
+| `category` | Filter events by event category |
+| `limit` | Control the maximum number of results |
+
+Example:
+
+```text
+GET /api/events?search=volunteer&category=Environment&limit=10
+```
+
+### Protected Routes
+
+Protected endpoints require a valid JWT access token in the Authorization header.
+
+```http
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+The backend verifies tokens using the Better Auth JWKS endpoint.
 
 ## Environment Variables
 
-Create a `.env` file in the server root:
+Create a `.env` file in the root directory:
 
-    PORT=5000
-    NODE_ENV=development
-    CLIENT_URL=http://localhost:3000
-    MONGODB_URI=your_mongodb_connection_string
-    BETTER_AUTH_SECRET=your_auth_secret
-    BETTER_AUTH_URL=http://localhost:5000
-    GOOGLE_CLIENT_ID=your_google_client_id
-    GOOGLE_CLIENT_SECRET=your_google_client_secret
+```env
+PORT=5000
+NODE_ENV=development
 
-Never commit real credentials or the `.env` file to GitHub.
+CLIENT_URL=http://localhost:3000
 
-## Installation
+MONGODB_URI=your_mongodb_connection_string
+DATABASE_NAME=kindora
 
-Clone the repository:
+BETTER_AUTH_SECRET=your_auth_secret
+BETTER_AUTH_URL=http://localhost:5000
 
-    git clone https://github.com/nibirshafuan/kindora-server.git
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
 
-Enter the directory:
+**Important:**
+- Replace placeholder values with your actual credentials.
+- Configure Google OAuth credentials in your Google Cloud project.
+- Use the appropriate frontend URL and authentication URL for your environment.
+- Never commit `.env` files or expose secret credentials publicly.
 
-    cd kindora-server
+## Getting Started
 
-Install dependencies:
+### Prerequisites
 
-    npm install
+- Node.js
+- npm
+- MongoDB database
+- Git
 
-Configure the `.env` file with your credentials.
+### 1. Clone the Repository
 
-## Run Development Server
+```bash
+git clone https://github.com/nibirshafuan/kindora-server.git
+```
 
-    npm run dev
+### 2. Navigate to the Project
 
-Default API address:
+```bash
+cd kindora-server
+```
 
-    http://localhost:5000
+### 3. Install Dependencies
 
-## Production Build
+```bash
+npm install
+```
 
-Compile TypeScript:
+### 4. Configure Environment Variables
 
-    npm run build
+Create a `.env` file in the project root and provide the required configuration.
 
-Start the production server:
+### 5. Run the Development Server
 
-    npm start
+```bash
+npm run dev
+```
 
-## Author
+The API will be available at:
 
-Nibir Shafuan  
-Department of Computer Science and Engineering  
+```text
+http://localhost:5000
+```
+
+## Available Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start development server with automatic reload |
+| `npm run build` | Compile TypeScript |
+| `npm start` | Start the compiled production server |
+
+## Project Structure
+
+```text
+kindora-server/
+├── scripts/
+├── src/
+│   ├── config/
+│   │   ├── auth.ts
+│   │   └── db.ts
+│   ├── controllers/
+│   │   └── event.controller.ts
+│   ├── middlewares/
+│   │   └── auth.middleware.ts
+│   ├── routes/
+│   │   └── event.routes.ts
+│   └── server.ts
+├── .gitignore
+├── package.json
+├── package-lock.json
+└── tsconfig.json
+```
+
+## Database Collections
+
+The application uses MongoDB collections for:
+
+- `events` – Stores community event information.
+- `eventParticipants` – Stores event participation records.
+
+A unique compound index on `eventId` and `userEmail` prevents duplicate participation in the same event.
+
+## Related Repository
+
+**Frontend:** https://github.com/nibirshafuan/kindora-client
+
+**Backend:** https://github.com/nibirshafuan/kindora-server
+
+**Live Application:** https://kindora-client-five.vercel.app
+
+## Developer
+
+**Nibir Shafuan**
+
+Computer Science and Engineering
 Daffodil International University
+
+- GitHub: https://github.com/nibirshafuan
+- LinkedIn: https://www.linkedin.com/in/nibirshafuan
+- Portfolio: https://nibirshafuan.vercel.app
 
 ## License
 
